@@ -1,39 +1,39 @@
 import java.io.*;
 import java.net.*;
 
-class UDPServer {
+class UDPServer 
+{
   public static void main(String args[]) throws Exception
+  {
+
+    DatagramSocket serverSocket = new DatagramSocket(9876);
+
+    byte[] receiveData = new byte[1024];
+    byte[] sendData  = new byte[1024];
+    System.out.println("SERVER is running:");
+
+    while(true)
     {
 
-      DatagramSocket serverSocket = new DatagramSocket(9876);
+      DatagramPacket receivePacket =
+        new DatagramPacket(receiveData, receiveData.length);
+      serverSocket.receive(receivePacket);
 
-      byte[] receiveData = new byte[1024];
-      byte[] sendData  = new byte[1024];
-      System.out.println("SERVER is running:");
+      String sentence = new String(receivePacket.getData());
+      System.out.println("MESSAGE FROM CLIENT:" + sentence);
 
-      while(true)
-        {
+      InetAddress IPAddress = receivePacket.getAddress();
 
-          DatagramPacket receivePacket =
-             new DatagramPacket(receiveData, receiveData.length);
-           serverSocket.receive(receivePacket);
+      int port = receivePacket.getPort();
 
-           String sentence = new String(receivePacket.getData());
-           System.out.println("MESSAGE FROM CLIENT:" + sentence);
+      String capitalizedSentence = sentence.toUpperCase();
 
-           InetAddress IPAddress = receivePacket.getAddress();
+      sendData = capitalizedSentence.getBytes();
 
-           int port = receivePacket.getPort();
+      DatagramPacket sendPacket =
+        new DatagramPacket(sendData, sendData.length, IPAddress, port);
 
-                       String capitalizedSentence = sentence.toUpperCase();
-
-           sendData = capitalizedSentence.getBytes();
-
-           DatagramPacket sendPacket =
-              new DatagramPacket(sendData, sendData.length, IPAddress,
-                                port);
-
-           serverSocket.send(sendPacket);
-         }
-     }
- }
+      serverSocket.send(sendPacket);
+    }
+  }
+}

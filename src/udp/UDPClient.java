@@ -1,38 +1,45 @@
 import java.io.*;
 import java.net.*;
 
-class UDPClient {
-    public static void main(String args[]) throws Exception
-    {
-      System.out.println("Client is running!");
-      byte[] sendData = new byte[1024];
-      byte[] receiveData = new byte[1024];
-      DatagramSocket clientSocket = new DatagramSocket();
+class UDPClient
+{
+  public static void main(String args[]) throws Exception
+  {
+    // Startup notification in console
+    System.out.println("Client is running!");
+    // Buffers & sockets
+    byte[] sendData = new byte[1024];
+    byte[] receiveData = new byte[1024];
+    DatagramSocket clientSocket = new DatagramSocket();
 
+    // Read input from user
+    BufferedReader inFromUser =
+      new BufferedReader(new InputStreamReader(System.in));
 
-      BufferedReader inFromUser =
-        new BufferedReader(new InputStreamReader(System.in));
+    // Convert user input to bytes for sending.
+    String sentence = inFromUser.readLine();
+    sendData = sentence.getBytes();
 
-      String sentence = inFromUser.readLine();
-      sendData = sentence.getBytes();
+    InetAddress IPAddress = InetAddress.getByName("127.0.0.1");
 
-      InetAddress IPAddress = InetAddress.getByName("127.0.0.1");
+    // Creates UDP packet with the 4 necessary components, then sends
+    DatagramPacket sendPacket =
+      new DatagramPacket(sendData, sendData.length, IPAddress, 9876);
 
+    clientSocket.send(sendPacket);
 
-      DatagramPacket sendPacket =
-    	         new DatagramPacket(sendData, sendData.length, IPAddress, 9876);
+    // Prepare to receive UDP packet with the 2 components, then receives
+    DatagramPacket receivePacket =
+      new DatagramPacket(receiveData, receiveData.length);
 
-      clientSocket.send(sendPacket);
+    clientSocket.receive(receivePacket);
 
-      DatagramPacket receivePacket =
-    	         new DatagramPacket(receiveData, receiveData.length);
+    // Convert received data to string
+    String modifiedSentence =
+        new String(receivePacket.getData());
 
-      clientSocket.receive(receivePacket);
-
-    	      String modifiedSentence =
-    	          new String(receivePacket.getData());
-
-    	      System.out.println("FROM SERVER:" + modifiedSentence);
-    	      clientSocket.close();
-    	      }
-    	}
+    // Print server response, then close socket.
+    System.out.println("FROM SERVER:" + modifiedSentence);
+    clientSocket.close();
+  }
+}
