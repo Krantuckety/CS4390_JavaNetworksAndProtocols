@@ -5,14 +5,14 @@ class UDPClient
 {
   public static void main(String args[]) throws Exception
   {
-    // Startup notification in console
+    // Startup notification in console.
     System.out.println("Client is running!");
     // Buffers & sockets
     byte[] sendData = new byte[1024];
     byte[] receiveData = new byte[1024];
     DatagramSocket clientSocket = new DatagramSocket();
 
-    // Read input from user
+    // Read input from user.
     BufferedReader inFromUser =
       new BufferedReader(new InputStreamReader(System.in));
 
@@ -22,19 +22,19 @@ class UDPClient
 
     InetAddress IPAddress = InetAddress.getByName("127.0.0.1");
 
-    // Creates UDP packet with the 4 necessary components, then sends
+    // Creates UDP packet with the 4 necessary components, then sends.
     DatagramPacket sendPacket =
       new DatagramPacket(sendData, sendData.length, IPAddress, 9876);
 
     clientSocket.send(sendPacket);
 
-    // Prepare to receive UDP packet with the 2 components, then receives
+    // Prepare to receive UDP packet with the 2 components, then receives.
     DatagramPacket receivePacket =
       new DatagramPacket(receiveData, receiveData.length);
 
     clientSocket.receive(receivePacket);
 
-    // Convert received data to string
+    // Convert received data to string.
     String modifiedSentence =
         new String(receivePacket.getData());
 
