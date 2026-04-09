@@ -1,5 +1,4 @@
 // Dependencies
-import java.io.*;
 import java.net.*;
 import java.util.*;
 
@@ -8,14 +7,16 @@ class ClientInfo
   // Store client identifying information and connection times.
   String address;
   int port;
+  String name;
   long connectTime;
   long lastSeen;
 
   // Constructor to initialize client info.
-  ClientInfo(String address, int port)
+  ClientInfo(String address, int port, String name)
   {
     this.address = address;
     this.port = port;
+    this.name = name;
     this.connectTime = System.currentTimeMillis();
     this.lastSeen = this.connectTime;
   }
@@ -42,42 +43,52 @@ class UDPServer
 
     while(true)
     {
-
-      DatagramPacket receivePacket =
-        new DatagramPacket(receiveData, receiveData.length);
+      DatagramPacket receivePacket = new DatagramPacket(receiveData, receiveData.length);
       serverSocket.receive(receivePacket);
 
-      String sentence = new String(receivePacket.getData());
-      System.out.println("MESSAGE FROM CLIENT:" + sentence);
-
       InetAddress IPAddress = receivePacket.getAddress();
-      int port = receivePacket.getPort();
+      int port = receivePacket.getPort(); 
 
       String clientKey = IPAddress.toString() + ":" + port;
-      // Check HashMap to see if client is new or existing. 
+
+      String usermsg = new String(receivePacket.getData(), 0, receivePacket.getLength()).trim();
+
+      // Check HashMap to see if client is new or existing.
       if (!clientMap.containsKey(clientKey)) 
       {
         // If new, construct new ClientInfo object and add to HashMap. 
-        ClientInfo newClient = new ClientInfo(IPAddress.toString(), port);
+        ClientInfo newClient = new ClientInfo(IPAddress.toString(), port, usermsg);
         clientMap.put(clientKey, newClient);
         // Console syntax to print new connection info. 
-        System.out.println("NEW CLIENT CONNECTED:");
+        System.out.println("NEW CLIENT CONNECTED: " + newClient.name);
         System.out.println("Address: " + clientKey);
         System.out.println("Connected at: " + new Date(newClient.connectTime));
+        String confirmation = "You have connected to the server " + newClient.name + ", please send math equations.";
+        sendData = confirmation.getBytes();
+
+        // Create UDP packet with the 4 necessary components, then send.
+        DatagramPacket sendPacket = new DatagramPacket(sendData, sendData.length, IPAddress, port);
+        serverSocket.send(sendPacket);
+        continue;
       } 
-      else 
-      {
-        // Update last seen time
-        ClientInfo client = clientMap.get(clientKey);
-        client.lastSeen = System.currentTimeMillis();
+
+      // Update last seen time
+      ClientInfo client = clientMap.get(clientKey);
+      client.lastSeen = System.currentTimeMillis();
+      
+      System.out.println("MESSAGE FROM CLIENT (" + client.name + "): " + usermsg);
+
+      if(usermsg.equalsIgnoreCase("quit")){
+        System.out.println(client.name + " is disconnecting");
+        clientMap.remove(clientKey);
+        continue;
       }
 
-      String capitalizedSentence = sentence.toUpperCase();
+      String servermsg = usermsg.toUpperCase();
 
-      sendData = capitalizedSentence.getBytes();
+      sendData = servermsg.getBytes();
       // Create UDP packet with the 4 necessary components, then send.
-      DatagramPacket sendPacket =
-        new DatagramPacket(sendData, sendData.length, IPAddress, port);
+      DatagramPacket sendPacket = new DatagramPacket(sendData, sendData.length, IPAddress, port);
 
       serverSocket.send(sendPacket);
     }

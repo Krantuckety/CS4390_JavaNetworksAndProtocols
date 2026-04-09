@@ -12,34 +12,50 @@ class UDPClient
     byte[] receiveData = new byte[1024];
     DatagramSocket clientSocket = new DatagramSocket();
 
-    // Read input from user.
-    BufferedReader inFromUser =
-      new BufferedReader(new InputStreamReader(System.in));
+    System.out.println("Enter name:");
 
-    // Convert user input to bytes for sending.
-    String sentence = inFromUser.readLine();
-    sendData = sentence.getBytes();
+    BufferedReader inFromUser = new BufferedReader(new InputStreamReader(System.in));
 
-    InetAddress IPAddress = InetAddress.getByName("127.0.0.1");
+    String name = inFromUser.readLine();
 
-    // Creates UDP packet with the 4 necessary components, then sends.
-    DatagramPacket sendPacket =
-      new DatagramPacket(sendData, sendData.length, IPAddress, 9876);
+    sendData = name.getBytes();
+    
+    InetAddress IPAddress = InetAddress.getByName("localhost");
+
+    DatagramPacket sendPacket = new DatagramPacket(sendData, sendData.length, IPAddress, 9876);
 
     clientSocket.send(sendPacket);
 
-    // Prepare to receive UDP packet with the 2 components, then receives.
-    DatagramPacket receivePacket =
-      new DatagramPacket(receiveData, receiveData.length);
+    while(true){
+      // Prepare to receive UDP packet with the 2 components, then receives.
+      DatagramPacket receivePacket =
+        new DatagramPacket(receiveData, receiveData.length);
 
-    clientSocket.receive(receivePacket);
+      clientSocket.receive(receivePacket);
 
-    // Convert received data to string.
-    String modifiedSentence =
-        new String(receivePacket.getData());
+      // Convert received data to string.
+      String solution = new String(receivePacket.getData(), 0, receivePacket.getLength()).trim();
 
-    // Print server response, then close socket.
-    System.out.println("FROM SERVER:" + modifiedSentence);
+      // Print server response, then close socket.
+      System.out.println("FROM SERVER:" + solution);
+      
+      // Read input from user.
+      inFromUser = new BufferedReader(new InputStreamReader(System.in));
+
+      // Convert user input to bytes for sending.
+      String equation = inFromUser.readLine();
+
+      sendData = equation.getBytes();
+
+      // Creates UDP packet with the 4 necessary components, then sends.
+      sendPacket = new DatagramPacket(sendData, sendData.length, IPAddress, 9876);
+
+      clientSocket.send(sendPacket);
+
+      if(equation.toLowerCase().startsWith("quit")){
+        break;
+      }
+    }
     clientSocket.close();
   }
 }
