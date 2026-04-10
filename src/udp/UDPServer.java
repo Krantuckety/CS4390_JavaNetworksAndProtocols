@@ -1,6 +1,8 @@
 // Dependencies
 import java.net.*;
 import java.util.*;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 class ClientInfo
 {
@@ -41,6 +43,8 @@ class UDPServer
     byte[] sendData  = new byte[1024];
     System.out.println("SERVER is running:");
 
+    String eqFormat = "^\\d+(\\s*[-+*/]\\s*\\d+)*$";
+
     while(true)
     {
       DatagramPacket receivePacket = new DatagramPacket(receiveData, receiveData.length);
@@ -63,7 +67,7 @@ class UDPServer
         System.out.println("NEW CLIENT CONNECTED: " + newClient.name);
         System.out.println("Address: " + clientKey);
         System.out.println("Connected at: " + new Date(newClient.connectTime));
-        String confirmation = "You have connected to the server " + newClient.name + ", please send math equations.";
+        String confirmation = " You have connected to the server " + newClient.name + ", please send math equations.";
         sendData = confirmation.getBytes();
 
         // Create UDP packet with the 4 necessary components, then send.
@@ -76,7 +80,7 @@ class UDPServer
       ClientInfo client = clientMap.get(clientKey);
       client.lastSeen = System.currentTimeMillis();
       
-      System.out.println("MESSAGE FROM CLIENT (" + client.name + "): " + usermsg);
+      System.out.println("FROM CLIENT (" + client.name + "): " + usermsg);
 
       if(usermsg.equalsIgnoreCase("quit")){
         System.out.println(client.name + " is disconnecting");
@@ -84,7 +88,44 @@ class UDPServer
         continue;
       }
 
-      String servermsg = usermsg.toUpperCase();
+      String servermsg = "";
+
+      if(usermsg.matches(eqFormat)){
+        Pattern pattern = Pattern.compile("\\d+|[+\\-*/()]+");
+        Matcher matcher = pattern.matcher(usermsg);
+
+        int result = 0;
+        if(matcher.find()){
+          result = Integer.parseInt(matcher.group());
+        }
+        //System.out.println(result);
+
+        while (matcher.find()) {
+            String op = matcher.group();
+            //System.out.println(op);
+            if(matcher.find()){
+              int num2 = Integer.parseInt(matcher.group());
+
+              if(op.equals("+")){
+                result += num2;
+              }
+              else if(op.equals("-")){
+                result -= num2;
+              }
+              else if(op.equals("/")){
+                result /= num2;
+              }
+              else if(op.equals("*")){
+                result *= num2;
+              }
+            }
+        }
+
+        servermsg = " Result: " + result;
+      }
+      else{
+        servermsg = "Improper equation format, please try again";
+      }
 
       sendData = servermsg.getBytes();
       // Create UDP packet with the 4 necessary components, then send.
