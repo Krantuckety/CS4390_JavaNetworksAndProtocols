@@ -43,6 +43,7 @@ class UDPServer
     byte[] sendData  = new byte[1024];
     System.out.println("SERVER is running:");
 
+    // Define format equations must be sent in (num op num op ...)
     String eqFormat = "^\\d+(\\s*[-+*/]\\s*\\d+)*$";
 
     while(true)
@@ -50,9 +51,11 @@ class UDPServer
       DatagramPacket receivePacket = new DatagramPacket(receiveData, receiveData.length);
       serverSocket.receive(receivePacket);
 
+      // Get IP and port number of client
       InetAddress IPAddress = receivePacket.getAddress();
       int port = receivePacket.getPort(); 
 
+      // Create client key for hashmap lookup
       String clientKey = IPAddress.toString() + ":" + port;
 
       String usermsg = new String(receivePacket.getData(), 0, receivePacket.getLength()).trim();
@@ -60,10 +63,10 @@ class UDPServer
       // Check HashMap to see if client is new or existing.
       if (!clientMap.containsKey(clientKey)) 
       {
-        // If new, construct new ClientInfo object and add to HashMap. 
+        // If new, construct new ClientInfo object and add to HashMap.
         ClientInfo newClient = new ClientInfo(IPAddress.toString(), port, usermsg);
         clientMap.put(clientKey, newClient);
-        // Console syntax to print new connection info. 
+        // Console syntax to print new connection info and inform user of connection
         System.out.println("NEW CLIENT CONNECTED: " + newClient.name);
         System.out.println("Address: " + clientKey);
         System.out.println("Connected at: " + new Date(newClient.connectTime));
@@ -76,12 +79,13 @@ class UDPServer
         continue;
       } 
 
-      // Update last seen time
+      // If client is not new, Update last seen time
       ClientInfo client = clientMap.get(clientKey);
       client.lastSeen = System.currentTimeMillis();
       
       System.out.println("FROM CLIENT (" + client.name + "): " + usermsg);
 
+      // Remove client from server hashmap if they send "quit"
       if(usermsg.equalsIgnoreCase("quit")){
         System.out.println(client.name + " is disconnecting");
         clientMap.remove(clientKey);
@@ -90,42 +94,49 @@ class UDPServer
 
       String servermsg = "";
 
-      if(usermsg.matches(eqFormat)){
-        Pattern pattern = Pattern.compile("\\d+|[+\\-*/()]+");
-        Matcher matcher = pattern.matcher(usermsg);
+      // Check if user eqaution is properly formated 
+      try {
+        if(usermsg.matches(eqFormat)){
+          // Takes equation pattern and uses matcher to split equation for parsing
+          Pattern pattern = Pattern.compile("\\d+|[+\\-*/()]+");
+          Matcher matcher = pattern.matcher(usermsg);
 
-        int result = 0;
-        if(matcher.find()){
-          result = Integer.parseInt(matcher.group());
+          int result = 0;
+          // Reads first number in equation 
+          if(matcher.find()){
+            result = Integer.parseInt(matcher.group());
+          }
+
+          // Reads rest of equation after first number and computes result
+          while (matcher.find()) {
+              String op = matcher.group();
+              if(matcher.find()){
+                int num2 = Integer.parseInt(matcher.group());
+
+                if(op.equals("+")){
+                  result += num2;
+                }
+                else if(op.equals("-")){
+                  result -= num2;
+                }
+                else if(op.equals("/")){
+                  result /= num2;
+                }
+                else if(op.equals("*")){
+                  result *= num2;
+                }
+              }
+          }
+
+          servermsg = " Result: " + result;
         }
-        //System.out.println(result);
-
-        while (matcher.find()) {
-            String op = matcher.group();
-            //System.out.println(op);
-            if(matcher.find()){
-              int num2 = Integer.parseInt(matcher.group());
-
-              if(op.equals("+")){
-                result += num2;
-              }
-              else if(op.equals("-")){
-                result -= num2;
-              }
-              else if(op.equals("/")){
-                result /= num2;
-              }
-              else if(op.equals("*")){
-                result *= num2;
-              }
-            }
+        else{
+          servermsg = "Improper equation format, please try again";
         }
-
-        servermsg = " Result: " + result;
-      }
-      else{
-        servermsg = "Improper equation format, please try again";
-      }
+    }
+    catch(Exception e){ // In case equation is not properly formated but still passes matching check
+      servermsg = "Improper equation format, please try again";
+    }
 
       sendData = servermsg.getBytes();
       // Create UDP packet with the 4 necessary components, then send.
