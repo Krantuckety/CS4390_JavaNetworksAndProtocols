@@ -43,8 +43,16 @@ class UDPServer
     byte[] sendData  = new byte[1024];
     System.out.println("SERVER is running:");
 
-    // Define format equations must be sent in (num op num op ...)
-    String eqFormat = "^\\d+(\\s*[-+*/]\\s*\\d+)*$";
+    /* 
+      Define format equations must be sent in (num op num op ...)
+      Valid Ops include: 
+                + (Addition)
+                - (Subtraction)
+                * (Multiplication)
+                / (Division)
+                ^ (Exponentiation)
+    */
+    String eqFormat = "^-?\\d+(\\s*[-+*/^]\\s*-?\\d+)*$";
 
     while(true)
     {
@@ -102,7 +110,7 @@ class UDPServer
         if(usermsg.matches(eqFormat))
         {
           // Takes equation pattern and uses matcher to split equation for parsing
-          Pattern pattern = Pattern.compile("\\d+|[+\\-*/()]+");
+          Pattern pattern = Pattern.compile("-?\\d+|[+\\-*/^()]+");
           Matcher matcher = pattern.matcher(usermsg);
 
           int result = 0;
@@ -116,6 +124,7 @@ class UDPServer
           while (matcher.find()) 
           {
             String op = matcher.group();
+            // Check which operator
             if(matcher.find())
             {
               int num2 = Integer.parseInt(matcher.group());
@@ -135,6 +144,10 @@ class UDPServer
               else if(op.equals("*"))
               {
                 result *= num2;
+              }
+              else if(op.equals("^"))
+              {
+                result = (int) Math.pow(result, num2);
               }
             }
           }
