@@ -21,6 +21,7 @@ class UDPClient
 
     sendData = name.getBytes();
     
+    // Get IP address of server, create the UDP packet and send.
     InetAddress IPAddress = InetAddress.getByName("localhost");
 
     DatagramPacket sendPacket = new DatagramPacket(sendData, sendData.length, IPAddress, 9876);

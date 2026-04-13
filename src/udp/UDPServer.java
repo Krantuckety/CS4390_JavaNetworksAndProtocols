@@ -44,13 +44,16 @@ class UDPServer
     System.out.println("SERVER is running:");
 
     /* 
-      Define format equations must be sent in (num op num op ...)
+      Define format equations must be sent in (sign num op sign num op ...)
       Valid Ops include: 
                 + (Addition)
                 - (Subtraction)
                 * (Multiplication)
                 / (Division)
                 ^ (Exponentiation)
+      Valid signs include:
+                -     (Negative)
+                Blank (Positive)
     */
     String eqFormat = "^-?\\d+(\\s*[-+*/^]\\s*-?\\d+)*$";
 
@@ -60,11 +63,11 @@ class UDPServer
       DatagramPacket receivePacket = new DatagramPacket(receiveData, receiveData.length);
       serverSocket.receive(receivePacket);
 
-      // Get IP and port number of client
+      // Get IP and port number of client.
       InetAddress IPAddress = receivePacket.getAddress();
       int port = receivePacket.getPort(); 
 
-      // Create client key for hashmap lookup
+      // Create client key for hashmap lookup.
       String clientKey = IPAddress.toString() + ":" + port;
 
       String usermsg = new String(receivePacket.getData(), 0, receivePacket.getLength()).trim();
@@ -75,7 +78,7 @@ class UDPServer
         // If new, construct new ClientInfo object and add to HashMap.
         ClientInfo newClient = new ClientInfo(IPAddress.toString(), port, usermsg);
         clientMap.put(clientKey, newClient);
-        // Console syntax to print new connection info and inform user of connection
+        // Console syntax to print new connection info and inform user of connection.
         System.out.println("NEW CLIENT CONNECTED: " + newClient.name);
         System.out.println("Address: " + clientKey);
         System.out.println("Connected at: " + new Date(newClient.connectTime));
@@ -88,13 +91,13 @@ class UDPServer
         continue;
       } 
 
-      // If client is not new, Update last seen time
+      // If client is not new, Update last seen time.
       ClientInfo client = clientMap.get(clientKey);
       client.lastSeen = System.currentTimeMillis();
       
       System.out.println("FROM CLIENT (" + client.name + "): " + usermsg);
 
-      // Remove client from server hashmap if they send "quit"
+      // Remove client from server hashmap if they send "quit".
       if(usermsg.equalsIgnoreCase("quit"))
       {
         System.out.println(client.name + " is disconnecting");
@@ -104,12 +107,12 @@ class UDPServer
 
       String servermsg = "";
 
-      // Check if user eqaution is properly formated 
+      // Check if user eqaution is properly formated .
       try 
       {
         if(usermsg.matches(eqFormat))
         {
-          // Takes equation pattern and uses matcher to split equation for parsing
+          // Takes equation pattern and uses matcher to split equation for parsing.
           Pattern pattern = Pattern.compile("-?\\d+|[+\\-*/^()]+");
           Matcher matcher = pattern.matcher(usermsg);
 
@@ -120,11 +123,11 @@ class UDPServer
             result = Integer.parseInt(matcher.group());
           }
 
-          // Reads rest of equation after first number and computes result
+          // Reads rest of equation after first number, then computes result.
           while (matcher.find()) 
           {
             String op = matcher.group();
-            // Check which operator
+            // Check the next operator.
             if(matcher.find())
             {
               int num2 = Integer.parseInt(matcher.group());
@@ -159,7 +162,7 @@ class UDPServer
         }
     }
     catch(Exception e)
-    { // In case equation is not properly formated but still passes matching check
+    { // Check if equation is not properly formated but still passes matching check.
       servermsg = "Improper equation format, please try again";
     }
 
