@@ -1,3 +1,4 @@
+// Dependencies
 import java.io.*;
 import java.net.*;
 
@@ -12,10 +13,10 @@ class UDPClient
     byte[] receiveData = new byte[1024];
     DatagramSocket clientSocket = new DatagramSocket();
 
+    // Prompt user for name and read, convert to bytes for sending.
     System.out.println("Enter name:");
 
     BufferedReader inFromUser = new BufferedReader(new InputStreamReader(System.in));
-
     String name = inFromUser.readLine();
 
     sendData = name.getBytes();
@@ -26,7 +27,8 @@ class UDPClient
 
     clientSocket.send(sendPacket);
 
-    while(true){
+    while(true)
+    {
       // Prepare to receive UDP packet with the 2 components, then receives.
       DatagramPacket receivePacket =
         new DatagramPacket(receiveData, receiveData.length);
@@ -52,7 +54,8 @@ class UDPClient
 
       clientSocket.send(sendPacket);
 
-      if(equation.toLowerCase().startsWith("quit")){
+      if(equation.toLowerCase().startsWith("quit"))
+      {
         break;
       }
     }

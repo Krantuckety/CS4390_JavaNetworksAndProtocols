@@ -48,6 +48,7 @@ class UDPServer
 
     while(true)
     {
+      // Receive incoming UDP packet with its 2 components. 
       DatagramPacket receivePacket = new DatagramPacket(receiveData, receiveData.length);
       serverSocket.receive(receivePacket);
 
@@ -86,7 +87,8 @@ class UDPServer
       System.out.println("FROM CLIENT (" + client.name + "): " + usermsg);
 
       // Remove client from server hashmap if they send "quit"
-      if(usermsg.equalsIgnoreCase("quit")){
+      if(usermsg.equalsIgnoreCase("quit"))
+      {
         System.out.println(client.name + " is disconnecting");
         clientMap.remove(clientKey);
         continue;
@@ -95,46 +97,56 @@ class UDPServer
       String servermsg = "";
 
       // Check if user eqaution is properly formated 
-      try {
-        if(usermsg.matches(eqFormat)){
+      try 
+      {
+        if(usermsg.matches(eqFormat))
+        {
           // Takes equation pattern and uses matcher to split equation for parsing
           Pattern pattern = Pattern.compile("\\d+|[+\\-*/()]+");
           Matcher matcher = pattern.matcher(usermsg);
 
           int result = 0;
           // Reads first number in equation 
-          if(matcher.find()){
+          if(matcher.find())
+          {
             result = Integer.parseInt(matcher.group());
           }
 
           // Reads rest of equation after first number and computes result
-          while (matcher.find()) {
-              String op = matcher.group();
-              if(matcher.find()){
-                int num2 = Integer.parseInt(matcher.group());
+          while (matcher.find()) 
+          {
+            String op = matcher.group();
+            if(matcher.find())
+            {
+              int num2 = Integer.parseInt(matcher.group());
 
-                if(op.equals("+")){
-                  result += num2;
-                }
-                else if(op.equals("-")){
-                  result -= num2;
-                }
-                else if(op.equals("/")){
-                  result /= num2;
-                }
-                else if(op.equals("*")){
-                  result *= num2;
-                }
+              if(op.equals("+"))
+              {
+                result += num2;
               }
+              else if(op.equals("-"))
+              {
+                result -= num2;
+              }
+              else if(op.equals("/"))
+              {
+                result /= num2;
+              }
+              else if(op.equals("*"))
+              {
+                result *= num2;
+              }
+            }
           }
-
           servermsg = " Result: " + result;
         }
-        else{
+        else
+        {
           servermsg = "Improper equation format, please try again";
         }
     }
-    catch(Exception e){ // In case equation is not properly formated but still passes matching check
+    catch(Exception e)
+    { // In case equation is not properly formated but still passes matching check
       servermsg = "Improper equation format, please try again";
     }
 
