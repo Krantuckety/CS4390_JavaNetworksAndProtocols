@@ -142,7 +142,7 @@ class UDPServer
               }
               else if(op.equals("/"))
               {
-                result /= num2;
+                result = (int) (result / num2);
               }
               else if(op.equals("*"))
               {
